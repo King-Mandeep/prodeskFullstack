@@ -1,91 +1,127 @@
-import blogPosts from "../data/posts.js";
+import Post from "../models/post.js";
 
-export function getAllPosts(req, res) {
-  res.status(200).json({
-    posts: blogPosts
-  });
-}
+export async function getAllPosts(req, res) {
+  try {
+    const posts = await Post.find();
 
-export function getPostById(req, res) {
-  const postId = Number(req.params.id);
-
-  const post = blogPosts.find(
-    (item) => item.id === postId
-  );
-
-  if (!post) {
-    return res.status(404).json({
-      message: "Post not found"
+    res.status(200).json({
+      posts
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch posts"
     });
   }
-
-  res.status(200).json(post);
 }
 
-export function createPost(req, res) {
-  const { title, content } = req.body;
+export async function getPostById(req, res) {
+  try {
+    const post = await Post.findById(
+      req.params.id
+    );
 
-  const newPost = {
-    id: Date.now(),
-    title,
-    content
-  };
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found"
+      });
+    }
 
-  blogPosts.push(newPost);
-
-  res.status(201).json({
-    message: "Post created successfully",
-    post: newPost
-  });
-}
-
-export function updatePost(req, res) {
-  const postId = Number(req.params.id);
-
-  const index = blogPosts.findIndex(
-    (item) => item.id === postId
-  );
-
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Post not found"
+    res.status(200).json(post);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch post"
     });
   }
-
-  const { title, content } = req.body;
-
-  blogPosts[index] = {
-    ...blogPosts[index],
-    title,
-    content
-  };
-
-  res.status(200).json({
-    message: "Post updated successfully",
-    post: blogPosts[index]
-  });
 }
 
-export function deletePost(req, res) {
-  const postId = Number(req.params.id);
+export async function createPost(
+  req,
+  res
+) {
+  try {
+    const { title, content } =
+      req.body;
 
-  const index = blogPosts.findIndex(
-    (item) => item.id === postId
-  );
+    const newPost =
+      await Post.create({
+        title,
+        content
+      });
 
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Post not found"
+    res.status(201).json({
+      message:
+        "Post created successfully",
+      post: newPost
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to create post"
     });
   }
+}
 
-  const deletedPost =
-    blogPosts[index];
+export async function updatePost(
+  req,
+  res
+) {
+  try {
+    const { title, content } =
+      req.body;
 
-  blogPosts.splice(index, 1);
+    const updatedPost =
+      await Post.findByIdAndUpdate(
+        req.params.id,
+        {
+          title,
+          content
+        },
+        {
+          new: true
+        }
+      );
 
-  res.status(200).json({
-    message: "Post deleted successfully",
-    post: deletedPost
-  });
+    if (!updatedPost) {
+      return res.status(404).json({
+        message: "Post not found"
+      });
+    }
+
+    res.status(200).json({
+      message:
+        "Post updated successfully",
+      post: updatedPost
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update post"
+    });
+  }
+}
+
+export async function deletePost(
+  req,
+  res
+) {
+  try {
+    const deletedPost =
+      await Post.findByIdAndDelete(
+        req.params.id
+      );
+
+    if (!deletedPost) {
+      return res.status(404).json({
+        message: "Post not found"
+      });
+    }
+
+    res.status(200).json({
+      message:
+        "Post deleted successfully",
+      post: deletedPost
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete post"
+    });
+  }
 }

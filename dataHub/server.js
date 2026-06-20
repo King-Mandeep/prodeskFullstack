@@ -1,6 +1,9 @@
 import express from "express";
-import postRoutes from "./routes/postRoutes.js";
 import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+import postRoutes from "./routes/postRoutes.js";
+
+
 
 dotenv.config();
 
@@ -11,6 +14,9 @@ app.use(express.json());
 
 
 app.use("/posts",postRoutes);
+
+
+await connectDB();
 
 const PORT = process.env.PORT || 5000;
 
